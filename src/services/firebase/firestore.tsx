@@ -17,8 +17,7 @@ const db = getFirestore();
 
 const userCollectionRef = collection(db, 'users');
 
-const usersDatabase = async () => getDocs(userCollectionRef)
-  .then((database) => database.docs.map((document) => document.data()));
+const usersDatabase = async () => getDocs(userCollectionRef).then((database) => database.docs.map((document) => document.data()));
 
 const updateDatabase = async (collectionUpdate: string, data: object) => {
   if (auth.currentUser) {
@@ -60,13 +59,14 @@ const createUserOnDatabase = async (registerUser: Login) => {
   }
 };
 
-const getUserReferenceOnDatabase = async () => usersDatabase()
-  .then((users) => users.find((user) => user.uid === auth.currentUser?.uid));
+const getUserReferenceOnDatabase = async () => usersDatabase().then((users) => users.find((user) => user.uid === auth.currentUser?.uid));
 
 async function checkUserOnDatabase(data: User) {
   await getDocs(userCollectionRef)
     .then((database) => {
-      const user = database.docs.find((document) => document.data().uid === data.uid)?.data();
+      const user = database.docs
+        .find((document) => document.data().uid === data.uid)
+        ?.data();
 
       if (user === undefined) {
         throw new Error('user not found');
@@ -114,7 +114,7 @@ const deleteAccount = () => {
   }
 };
 
-const getUserProfiles = async () : Promise<DocumentData | undefined> => {
+const getUserProfiles = async (): Promise<DocumentData | undefined> => {
   if (auth.currentUser) {
     const docProfile = doc(db, 'profiles', auth.currentUser.uid);
 
@@ -125,5 +125,10 @@ const getUserProfiles = async () : Promise<DocumentData | undefined> => {
 };
 
 export {
-  db, updateDatabase, createUserOnDatabase, checkUserOnDatabase, deleteAccount, getUserProfiles,
+  db,
+  updateDatabase,
+  createUserOnDatabase,
+  checkUserOnDatabase,
+  deleteAccount,
+  getUserProfiles,
 };
