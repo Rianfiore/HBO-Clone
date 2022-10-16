@@ -2,10 +2,20 @@ import { Button, Form, Input } from 'components';
 import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useRecoilState, useRecoilValue } from 'recoil';
-import { currentProfileState, hasProfilesState, profilesState } from 'recoil/profiles/atoms';
+import {
+  currentProfileState,
+  hasProfilesState,
+  profilesState,
+} from 'recoil/profiles/atoms';
 import { userState } from 'recoil/user/atoms';
-import { deleteAccount, getUserProfiles, updateDatabase } from 'services/firebase/firestore';
+import {
+  deleteAccount,
+  getUserProfiles,
+  updateDatabase,
+} from 'services/firebase/firestore';
+import { apiTmdb } from 'api';
 import { Profile } from 'types';
+import { catalogState } from 'recoil/apiMovie/atoms';
 
 function CreateProfile() {
   const user = useRecoilValue(userState);
@@ -35,9 +45,11 @@ function CreateProfile() {
         setHasProfiles(true);
 
         if (userProfile) {
-          const addProfile = userProfile.length > 0 ? { profiles: [newProfile] } : {
-            profiles: [...userProfile.profiles, newProfile],
-          };
+          const addProfile = userProfile.length > 0
+            ? { profiles: [newProfile] }
+            : {
+              profiles: [...userProfile.profiles, newProfile],
+            };
 
           updateDatabase('profiles', addProfile)
             .then(() => {
@@ -86,9 +98,7 @@ function CreateProfile() {
           Perfil kids
           <input type="checkbox" />
         </h3>
-        <Button type="submit">
-          Criar perfil
-        </Button>
+        <Button type="submit">Criar perfil</Button>
       </Form>
     </>
   );
@@ -99,6 +109,7 @@ function SelectProfile() {
   const [, setHasProfile] = useRecoilState(hasProfilesState);
   const [, setUser] = useRecoilState(userState);
   const [, setCurrentProfile] = useRecoilState(currentProfileState);
+  const [, setCatalog] = useRecoilState(catalogState);
 
   const deleteUser = () => {
     setHasProfile('loading');
@@ -106,11 +117,19 @@ function SelectProfile() {
     deleteAccount();
   };
 
-  const handleCurrentProfile = (profile : Profile) => {
+  const handleCurrentProfile = (profile: Profile) => {
     const stringProfile = JSON.stringify(profile);
 
     setCurrentProfile(profile);
     localStorage.setItem('current_profile', stringProfile);
+
+    apiTmdb().then((catalog) => {
+      if (catalog) {
+        const stringCatalog = JSON.stringify(catalog);
+        setCatalog(catalog);
+        localStorage.setItem('current_catalog', stringCatalog);
+      }
+    });
   };
 
   return (
@@ -129,7 +148,9 @@ function SelectProfile() {
       <button type="button" onClick={() => setHasProfile(false)}>
         Criar outro perfil
       </button>
-      <button type="button" onClick={() => deleteUser()}>Deletar</button>
+      <button type="button" onClick={() => deleteUser()}>
+        Deletar
+      </button>
     </>
   );
 }
@@ -154,9 +175,5 @@ export function ProfilePage() {
     });
   }, [setHasProfiles, setProfiles]);
 
-  return (
-
-    hasProfiles !== 'loading' ? handleProfilePage() : null
-
-  );
+  return hasProfiles !== 'loading' ? handleProfilePage() : null;
 }
