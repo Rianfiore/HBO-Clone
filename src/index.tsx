@@ -5,14 +5,11 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const queryClient = new QueryClient();
 
-const root = ReactDOM.createRoot(
-  document.getElementById('root') as HTMLElement,
-);
+const root = ReactDOM.createRoot(document.getElementById('root') as HTMLElement);
 root.render(
   <RecoilRoot>
     <QueryClientProvider client={queryClient}>
       <Router />
     </QueryClientProvider>
-  </RecoilRoot>
-  ,
+  </RecoilRoot>,
 );

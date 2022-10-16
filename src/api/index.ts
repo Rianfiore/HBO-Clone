@@ -1,1 +1,1 @@
-export { useTmdb } from './tmdb';
+export { apiTmdb } from './tmdb';

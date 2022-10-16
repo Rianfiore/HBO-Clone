@@ -15,7 +15,12 @@ function AuthRoutes() {
     <Routes>
       <Route path="/profiles" element={<ProfilePage />} />
       <Route path="/home" element={<HomePage />} />
-      <Route path="*" element={<Navigate to={hasCurrentProfile ? '/home' : '/profiles'} replace />} />
+      <Route
+        path="*"
+        element={
+          <Navigate to={hasCurrentProfile ? '/home' : '/profiles'} replace />
+        }
+      />
     </Routes>
   );
 }
@@ -43,7 +48,7 @@ export function Router() {
 
   useEffect(() => {
     if (hasUser) {
-      const userAuth : User = {
+      const userAuth: User = {
         email: auth.currentUser?.email,
         uid: auth.currentUser?.uid,
         displayName: auth.currentUser?.displayName,
@@ -55,7 +60,7 @@ export function Router() {
 
   return (
     <BrowserRouter>
-      { hasUser !== 'loading' && (hasUser ? <AuthRoutes /> : <AppRoutes />)}
+      {hasUser !== 'loading' && (hasUser ? <AuthRoutes /> : <AppRoutes />)}
     </BrowserRouter>
   );
 }
