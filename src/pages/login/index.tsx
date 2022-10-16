@@ -16,7 +16,7 @@ import { useRecoilState } from 'recoil';
 import { userState } from 'recoil/user/atoms';
 import { RegisterModalProps } from './types';
 
-function RegisterModal({ openModal, setOpenModal } : RegisterModalProps) {
+function RegisterModal({ openModal, setOpenModal }: RegisterModalProps) {
   const [, setUser] = useRecoilState(userState);
   const createAccount = (e: React.FormEvent, type: 'google' | 'email') => {
     const form = document.getElementById('register-form') as HTMLFormElement;
@@ -36,7 +36,7 @@ function RegisterModal({ openModal, setOpenModal } : RegisterModalProps) {
           password: password.value,
         };
 
-        const userAuth : User = {
+        const userAuth: User = {
           email: authUser.user.email,
           uid: authUser.user.uid,
           displayName: `${name.value} ${surname.value}`,
@@ -53,7 +53,9 @@ function RegisterModal({ openModal, setOpenModal } : RegisterModalProps) {
 
   return (
     <Modal>
-      <button type="button" onClick={() => setOpenModal(!openModal)}>X</button>
+      <button type="button" onClick={() => setOpenModal(!openModal)}>
+        X
+      </button>
       <Form id="register-form">
         <Title level={1}>Criar conta</Title>
         <Paragraph>
@@ -90,7 +92,7 @@ export function LoginPage() {
 
     signInWithEmailAndPassword(auth, email.value, password.value)
       .then((authUser) => {
-        const userAuth : User = {
+        const userAuth: User = {
           email: authUser.user.email,
           uid: authUser.user.uid,
           displayName: authUser.user.displayName,
@@ -106,7 +108,9 @@ export function LoginPage() {
 
   return (
     <>
-      {openModal && <RegisterModal openModal={openModal} setOpenModal={setOpenModal} />}
+      {openModal && (
+        <RegisterModal openModal={openModal} setOpenModal={setOpenModal} />
+      )}
       <Form id="login-form">
         <Input type="email" placeholder="E-mail" name="email" />
         <Input type="password" placeholder="Senha" name="password" />
@@ -115,7 +119,9 @@ export function LoginPage() {
         </Button>
       </Form>
       <button type="button">Entrar com Google</button>
-      <button type="button" onClick={() => setOpenModal(!openModal)}>Cadastrar</button>
+      <button type="button" onClick={() => setOpenModal(!openModal)}>
+        Cadastrar
+      </button>
     </>
   );
 }
