@@ -6,12 +6,12 @@ export const profilesState = atom<Profile[] | []>({
   default: [],
 });
 
-export const hasProfilesState = atom <boolean | 'loading'>({
+export const hasProfilesState = atom<boolean | 'loading'>({
   key: 'hasProfiles',
   default: 'loading',
 });
 
-export const currentProfileState = atom <Profile | null>({
+export const currentProfileState = atom<Profile | null>({
   key: 'currentProfile',
   default: null,
 });
