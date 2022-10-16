@@ -73,34 +73,36 @@ const createCatalog = async () => {
   const totalPages = generateArrayNumber(14);
   const genresApi = await (await axios.get(url)).data.genres;
 
-  const genresApiWithMovies : GenreWithMovies[] = await Promise.all(
+  const genresApiWithMovies: GenreWithMovies[] = await Promise.all(
     genresApi.map(async (genreApi: Genre) => {
       const moviesByIdUrl = (currentPage: number) => `${tmdbConfig.baseURL}${endpoints.discover.movie.url}api_key=${tmdbConfig.apiKey}&language=pt-BR&with_genres=${genreApi.id}&sort_by=popularity.desc&page=${currentPage}`;
 
-      const allMoviesByGenre : Movie[] = [];
+      const allMoviesByGenre: Movie[] = [];
 
       await Promise.all(
-        totalPages.map(
-          async (currentPage: number) => {
-            const moviesByGenre = await (await axios.get(moviesByIdUrl(currentPage))).data.results;
+        totalPages.map(async (currentPage: number) => {
+          const moviesByGenre = await (
+            await axios.get(moviesByIdUrl(currentPage))
+          ).data.results;
 
-            moviesByGenre.forEach((movie : Movie) => {
-              allMoviesByGenre.push(movie);
-            });
-          },
-        ),
+          moviesByGenre.forEach((movie: Movie) => {
+            allMoviesByGenre.push(movie);
+          });
+        }),
       );
 
-      return { id: genreApi.id, name: genreApi.name, movies: allMoviesByGenre } as GenreWithMovies;
+      return {
+        id: genreApi.id,
+        name: genreApi.name,
+        movies: allMoviesByGenre,
+      } as GenreWithMovies;
     }),
   );
 
   return genresApiWithMovies;
 };
 
-const defaultQueryFn = async (): Promise<GenreWithMovies[] | null> => (
-  createCatalog()
-);
+const defaultQueryFn = async (): Promise<GenreWithMovies[] | null> => createCatalog();
 
 const api = new QueryClient({
   defaultOptions: {
@@ -110,4 +112,4 @@ const api = new QueryClient({
   },
 });
 
-export const apiTmdb = () => api.fetchQuery({}) as Promise< GenreWithMovies[]| null>;
+export const apiTmdb = () => api.fetchQuery({}) as Promise<GenreWithMovies[] | null>;
