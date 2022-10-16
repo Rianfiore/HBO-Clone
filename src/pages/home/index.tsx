@@ -45,16 +45,30 @@ export function HomePage() {
   return (
     <>
       {currentProfile && (
-      <>
-        <h1>{`Olá, ${currentProfile?.displayName}`}</h1>
-        <button type="button" onClick={() => signOutUser()}>
-          Fazer logoff
-        </button>
-      </>
+        <>
+          <h1>{`Olá, ${currentProfile?.displayName}`}</h1>
+          <button type="button" onClick={() => signOutUser()}>
+            Fazer logoff
+          </button>
+        </>
       )}
-      {catalog && (
-        catalog.map((genre : GenreWithMovies) => <MovieCategory key={genre.id} title={genre.name} movies={genre.movies} genre={genre} />)
-      )}
+
+      <MovieCategory title="Minha Lista" />
+
+      <MovieCategory title="Apenas para você" />
+
+      <MovieCategory title="Do cinema para sua casa" />
+
+      <MovieCategory title="Aqui é Halloween o mês inteiro!" subtitle="Eita, parece que os sustos começaram mais cedo..." />
+      {catalog
+        && catalog.map((genre: GenreWithMovies) => (
+          <MovieCategory
+            key={genre.id}
+            title={genre.name}
+            movies={genre.movies}
+            genre={genre}
+          />
+        ))}
     </>
   );
 }
