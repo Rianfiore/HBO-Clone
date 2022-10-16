@@ -1,7 +1,7 @@
 import { atom } from 'recoil';
-import { Movie } from 'types';
+import { GenreWithMovies } from 'types';
 
-export const catalogState = atom<Movie[] | null>({
+export const catalogState = atom<GenreWithMovies[] | null>({
   key: 'catalog',
   default: null,
 });
