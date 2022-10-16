@@ -1,22 +1,27 @@
-import { QueryClient, QueryFunctionContext, QueryKey } from '@tanstack/react-query';
+import { QueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import { Genre, Genres, Movie } from 'types';
+import { Genre, GenreWithMovies, Movie } from 'types';
 
-const credits = (creditId : string) => ({ details: `/credit/${creditId}` });
+const credits = (creditId: string) => ({ details: `/credit/${creditId}` });
 
 const discover = {
-  movie: (sortBy? : string, includeVideo? : boolean) => `/discover/movie${sortBy ? `?sort_by=${sortBy}` : ''}${includeVideo ? '&include_video=true' : ''}`,
-  tv: '/discover/tv',
+  movie: {
+    url: '/discover/movie?',
+    query: (sortBy?: string, withGenres?: number, includeVideo?: boolean) => `${sortBy ? `&sort_by=${sortBy}` : ''}${
+      includeVideo ? '&include_video=true' : ''
+    }${withGenres ? `&with_genres=${withGenres}` : ''}`,
+  },
+  tv: { url: '/discover/tv' },
 };
 
-const find = (externalId : string) => ({ find: `/find/${externalId}` });
+const find = (externalId: string) => ({ find: `/find/${externalId}` });
 
 const genres = {
   movie: '/genre/movie/list',
   tv: '/genre/tv/list',
 };
 
-const movies = (movieId : string) => ({
+const movies = (movieId: string) => ({
   details: `/movie/${movieId}`,
   credits: `/movie/${movieId}/credits`,
   image: `/movie/${movieId}/images`,
@@ -28,7 +33,6 @@ const people = (personId: string) => ({
   details: `/person/${personId}`,
   images: `/person/${personId}/images`,
   movieCredits: `/person/${personId}/movie_credits`,
-
 });
 
 const search = () => ({
@@ -50,82 +54,60 @@ const tmdbConfig = {
   },
 };
 
+// implementar filmes relacionados com movie lists
+
 const { endpoints } = tmdbConfig;
 
-type apiProps = {
-  catalog: Movie[] | null,
-  genres: Genre[],
-  moviesByGenres: Genres | null
-}
+const generateArrayNumber = (length: number): number[] => {
+  const generateArray = [];
 
-export const useTmdb = () => {
-  const defaultQueryFn = async () : Promise<apiProps | null> => {
-    const catalogGenres = async () => {
-      const url = `${tmdbConfig.baseURL}${endpoints.genres.movie}?api_key=${tmdbConfig.apiKey}`;
-      const result: Genre[] = [];
+  for (let i = 1; i <= length; i += 1) {
+    generateArray.push(i);
+  }
 
-      await axios.get(url).then((res) => {
-        result.push(...res.data.genres);
-      });
-
-      return result;
-    };
-
-    const catalogMoviesByGenres = () => {
-      const currentGenres : Genres = [];
-      catalogGenres().then((resGenres) => {
-        resGenres.map(async (resGenre) => {
-          const maxPages = 12;
-          const currentGenreMovies : Movie[] = [];
-          const currentGenre = {
-            [resGenre.name]: {
-              id: resGenre.id,
-              movies: currentGenreMovies,
-            },
-          };
-
-          for (let page = 1; page <= maxPages; page += 1) {
-            const url = `${tmdbConfig.baseURL}${endpoints.discover.movie('popularity.desc', true)}&api_key=${tmdbConfig.apiKey}&with_genres=${resGenre.id}&page=${page}`;
-
-            axios.get(url).then((res) => {
-              currentGenreMovies.push(...res.data);
-            });
-          }
-
-          currentGenres.action.movies(currentGenre);
-
-          console.log(currentGenres);
-          return null;
-        });
-      });
-
-      // catalogGenres().map((catalogGenre) => {
-      //   // const result = catalogMovies.filter((catalogMovie) => catalogGenre.id === catalogMovie.id);
-
-      //   console.log(catalogGenre.id);
-
-      //   return null;
-      // });
-    };
-
-    catalogMoviesByGenres();
-
-    return {
-      catalog: null,
-      genres: await catalogGenres(),
-      moviesByGenres: null,
-    };
-  };
-
-  const api = new QueryClient({
-    defaultOptions: {
-      queries: {
-        queryFn: defaultQueryFn,
-      },
-    },
-  });
-
-  const fullCatalog = api.fetchQuery;
-
-  return fullCatalog;
+  return generateArray;
 };
+
+const createCatalog = async () => {
+  const url = `${tmdbConfig.baseURL}${endpoints.genres.movie}?api_key=${tmdbConfig.apiKey}&language=pt-BR`;
+  const totalPages = generateArrayNumber(14);
+  const genresApi = await (await axios.get(url)).data.genres;
+
+  const genresApiWithMovies : GenreWithMovies[] = await Promise.all(
+    genresApi.map(async (genreApi: Genre) => {
+      const moviesByIdUrl = (currentPage: number) => `${tmdbConfig.baseURL}${endpoints.discover.movie.url}api_key=${tmdbConfig.apiKey}&language=pt-BR&with_genres=${genreApi.id}&sort_by=popularity.desc&page=${currentPage}`;
+
+      const allMoviesByGenre : Movie[] = [];
+
+      await Promise.all(
+        totalPages.map(
+          async (currentPage: number) => {
+            const moviesByGenre = await (await axios.get(moviesByIdUrl(currentPage))).data.results;
+
+            moviesByGenre.forEach((movie : Movie) => {
+              allMoviesByGenre.push(movie);
+            });
+          },
+        ),
+      );
+
+      return { id: genreApi.id, name: genreApi.name, movies: allMoviesByGenre } as GenreWithMovies;
+    }),
+  );
+
+  return genresApiWithMovies;
+};
+
+const defaultQueryFn = async (): Promise<GenreWithMovies[] | null> => (
+  createCatalog()
+);
+
+const api = new QueryClient({
+  defaultOptions: {
+    queries: {
+      queryFn: defaultQueryFn,
+    },
+  },
+});
+
+export const apiTmdb = () => api.fetchQuery({}) as Promise< GenreWithMovies[]| null>;
